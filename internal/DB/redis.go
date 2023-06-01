@@ -1,0 +1,14 @@
+package DB
+
+import "github.com/redis/go-redis/v9"
+
+// Redis database configuration
+var rdb *redis.Client
+
+func initRedis() {
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+}
