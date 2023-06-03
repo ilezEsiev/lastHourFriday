@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io"
+	"lastHourFriday/internal/telegramBotApi"
 	"log"
 	"net/http"
 	"strings"
@@ -17,15 +18,12 @@ type TimeSalat struct {
 	Items []Item `json:"items"`
 }
 
-func send() {
-	/*bot, err := tgbotapi.NewBotAPI("5440075577:AAFS5UBeVWrOKOp6J0odq0NyhQJFFCuqcfg")
-	if err != nil {
-		log.Panic(err)
-	}*/
+func Send() {
+
 	var timeMaghrib TimeSalat
 	weekday := time.Now().Weekday()
 	//Проверям сегодня пятница
-	if weekday.String() == "Wednesday" {
+	if weekday.String() == "Friday" {
 		// Получаем json с Rest API
 		data, err := http.Get("https://muslimsalat.com/nazran/daily.json?key=906a413e13c24f0c43459ed9f04cb0e2")
 		if err != nil {
@@ -54,7 +52,7 @@ func send() {
 		time.Sleep(hoursLeft)
 		for {
 			if isItTime(maghribHourTimeParsed) {
-				SendToTelegram(bot)
+				SendToTelegram(telegramBotApi.Bot)
 				return
 			}
 		}

@@ -2,17 +2,18 @@ package telegramBotApi
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tk "lastHourFriday/internal/token"
 	"log"
 )
 
 // Telegram bot configuration
-var bot *tgbotapi.BotAPI
+var Bot *tgbotapi.BotAPI
 
-func initBot() {
+func InitBot() {
 	var err error
-	bot, err = tgbotapi.NewBotAPI("5440075577:AAFS5UBeVWrOKOp6J0odq0NyhQJFFCuqcfg")
+	Bot, err = tgbotapi.NewBotAPI(tk.TokenTg().)
 	if err != nil {
 		log.Panic(err)
 	}
-	bot.Debug = true
+	Bot.Debug = true
 }
