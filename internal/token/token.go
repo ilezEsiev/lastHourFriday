@@ -2,16 +2,15 @@ package token
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 )
 
 type Config struct {
-	Tokenstr string `json:"tokenstr"`
+	Token string `json:"token"`
 }
 
-func TokenTg() {
+func TokenTg() (Token string) {
 	// Чтение файла конфигурации
 	file, err := ioutil.ReadFile("config.json")
 	if err != nil {
@@ -25,6 +24,5 @@ func TokenTg() {
 		log.Fatal("Ошибка парсинга файла конфигурации:", err)
 	}
 
-	// Использование значения токена
-	fmt.Println("Токен:", Configjs.Tokenstr)
+	return Configjs.Token
 }
