@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	DB.GetAllKeysFromRedis()
 	DB.InitRedis()
 	tg.GetUpdateFromTelegram()
 	internal.Send()

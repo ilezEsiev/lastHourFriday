@@ -1,67 +1,59 @@
 package DB
 
 import (
+	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"log"
 )
 
-func GetAllKeysFromRedis() ([]string, error) {
-	// Создаем клиента Redis
+func GetAllKeysFromRedis() []string {
+	// Подключение к Redis
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Укажите адрес и порт Redis сервера
-		Password: "",               // Укажите пароль, если он установлен
-		DB:       0,                // Укажите номер базы данных Redis, если требуется
+		Addr:     "localhost:6379", // Адрес Redis сервера
+		Password: "",               // Пароль, если установленzzz
+		DB:       0,                // Выбор базы данных
 	})
+	defer client.Close()
+	// Создание контекста
+	// Создание контекста
+	ctx := context.Background()
 
-	// Проверяем подключение к Redis
-	_, err := client.Ping().Result()
-	if err != nil {
-		return nil, err
-	}
-
-	// Инициализируем пустой список ключей
-	keys := []string{}
-
-	// Итерируем по страницам с помощью команды SCAN
+	// Итерация через все значения в Redis
 	var cursor uint64
+	var values []string
+
 	for {
-		// Выполняем команду SCAN для получения следующей страницы ключей
-		keysPage, cur, err := client.Scan(cursor, "", 0).Result()
+		var keys []string
+		var err error
+
+		// Использование команды "SCAN" для получения пакета значений
+		keys, cursor, err = client.Scan(ctx, cursor, "*", 10).Result()
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
 
-		// Добавляем ключи текущей страницы в общий список ключей
-		keys = append(keys, keysPage...)
+		// Использование команды "MGET" для получения значений по ключам
+		results, err := client.MGet(ctx, keys...).Result()
+		if err != nil {
+			panic(err)
+		}
 
-		// Обновляем текущий указатель курсора
-		cursor = cur
+		// Добавление значений в общий срез
+		for _, value := range results {
+			if value != nil {
+				values = append(values, value.(string))
+			}
+		}
 
-		// Если курсор равен 0, значит достигнут конец итерации
+		// Прекращение итерации, если достигнут конец
 		if cursor == 0 {
 			break
 		}
 	}
 
-	// Закрываем соединение с Redis
-	err = client.Close()
-	if err != nil {
-		log.Println("Failed to close Redis connection:", err)
+	// Вывод всех значений
+	for _, value := range values {
+		fmt.Println(value)
 	}
-
-	return keys, nil
-}
-
-func main() {
-	keys, err := GetAllKeysFromRedis()
-	if err != nil {
-		log.Println("Failed to get keys from Redis:", err)
-		return
-	}
-
-	// Выводим все ключи
-	for _, key := range keys {
-		fmt.Println(key)
-	}
+	return values
 }
