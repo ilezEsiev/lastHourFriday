@@ -12,52 +12,69 @@ import (
 	"time"
 )
 
-type Item struct {
-	MagrhibTime string `json:"maghrib"`
-}
-type TimeSalat struct {
-	Items []Item `json:"items"`
+type Response struct {
+	Data struct {
+		Timings struct {
+			Maghrib string `json:"Maghrib"`
+		} `json:"timings"`
+	} `json:"data"`
 }
 
 func Send() {
+	// Создаем переменную для хранения JSON-ответа
+	var timeMaghrib Response
 
-	var timeMaghrib TimeSalat
+	// Получение текущего дня недели
 	weekday := time.Now().Weekday()
-	//Проверям сегодня пятница
-	if weekday.String() == "Monday" {
-		// Получаем json с Rest API
-		data, err := http.Get("https://muslimsalat.com/nazran/daily.json?key=906a413e13c24f0c43459ed9f04cb0e2")
+
+	// Проверяем, является ли сегодня воскресеньем
+	if weekday.String() == "Friday" {
+		// Получаем JSON-данные из REST API
+		data, err := http.Get("https://api.aladhan.com/v1/timingsByCity/18-06-2023?city=Nazran&country=Ru&method=2&school=0")
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		dataBodyToByte, err := io.ReadAll(data.Body)
-
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Разбираем JSON-данные и сохраняем в переменную timeMaghrib
 		err = json.Unmarshal(dataBodyToByte, &timeMaghrib)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// Из всех данных достаем время вечернего намаза
-		maghribHourTime := strings.ToUpper(timeMaghrib.Items[0].MagrhibTime)
-		maghribHourTime = strings.ReplaceAll(maghribHourTime, " ", "")
-		maghribHourTimeParsed, err := time.Parse(time.Kitchen, maghribHourTime) //Время маг1риб намаза
+
+		// Извлекаем время вечернего намаза из данных
+		maghribHourTime := strings.ToUpper(timeMaghrib.Data.Timings.Maghrib)
+		//maghribHourTime = strings.ReplaceAll(maghribHourTime, " ", "")
+
+		// Парсим время вечернего намаза
+		maghribHourTimeParsed, err := time.Parse("15:04", maghribHourTime)
 		if err != nil {
 			log.Fatal(err)
 		}
-		//
+
+		// Рассчитываем разницу между текущим временем и временем намаза
 		houreBefore := maghribHourTimeParsed.Add(-time.Hour)
 		hoursLeft := time.Now().Sub(houreBefore)
 		time.Sleep(hoursLeft)
+
+		// Проверяем, наступило ли время намаза
 		for {
 			if isItTime.Time(maghribHourTimeParsed) {
-				SendToTelegramFunc.Send(telegramBotApi.Bot)
-				return
+				// Отправляем сообщение с напоминанием в Telegram каналы
+				SendToTelegramFunc.SendTg(telegramBotApi.Bot)
+				time.Sleep((time.Hour * 24) * 7)
+				break //как тут быть
+			} else {
+				time.Sleep(time.Hour)
 			}
 		}
 
+	} else {
+		// Если сегодня не воскресенье, ждем 24 часа
+		time.Sleep(24 * time.Hour)
 	}
-
 }

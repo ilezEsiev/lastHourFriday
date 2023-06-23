@@ -25,18 +25,19 @@ func GetUpdateFromTelegram() {
 	ctx := context.Background()
 	for update := range updates {
 		if update.Message != nil && update.Message.Text == "/startFridayBot" {
+
 			// Получаем чат ID and ChatName
 			chatID := update.Message.Chat.ID
 			chatName := update.Message.Chat.FirstName
-
+			//Подключение к базе данных Redis
+			DB.InitRedis()
 			// Записываем chatID в базу данных Redis
 			err := DB.Rdb.Set(ctx, chatName, strconv.Itoa(int(chatID)), 0).Err()
 			if err != nil {
 				log.Println(err)
 			}
-
 			// Отправляем сообщение об успешном сохранении ChatId в базу данных и запуске бота.
-			msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("%s, бот запушен! ", chatName))
+			msg := tgbotapi.NewMessage(chatID, fmt.Sprintf("%s, Бот запушен! ", chatName))
 			Bot.Send(msg)
 		}
 	}

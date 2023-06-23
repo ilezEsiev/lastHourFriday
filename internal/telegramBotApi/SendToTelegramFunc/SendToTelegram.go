@@ -1,31 +1,42 @@
 package SendToTelegramFunc
 
 import (
+	"context"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/redis/go-redis/v9"
 	"log"
 )
 
-func Send(bot *tgbotapi.BotAPI) { //Функция отправки уведомления
+func SendTg(bot *tgbotapi.BotAPI) { //Функция отправки уведомления
 
-	bot.Debug = true
+	// Подключение к базе Redis
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // Если не требуется пароль для доступа
+		DB:       0,  // Индекс базы данных
+	})
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	defer redisClient.Close()
 
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	// Получение всех идентификаторов чатов из Redis
+	channelIDs, err := redisClient.LRange(context.Background(), "telegram_channels", 0, -1).Result()
+	if err != nil {
+		log.Println("Ошибка при получении идентификаторов чатов из Redis:", err)
+		return
+	}
 
-	updates := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			//log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Последний час пятницы, не забуьте сделать дуа!")
-			msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
-
+	// Отправка уведомления в каждый чат
+	for _, channelID := range channelIDs {
+		// Отправка уведомления в чат
+		msg := tgbotapi.NewMessageToChannel(channelID, "Последний час пятницы, не забуьте сделать дуа!")
+		_, err := bot.Send(msg)
+		if err != nil {
+			log.Println("Ошибка при отправке уведомления в чат:", err)
+			continue
 		}
+
+		fmt.Println("Уведомление отправлено в чат:", channelID)
 	}
 
 }

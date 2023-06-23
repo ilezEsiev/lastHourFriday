@@ -1,15 +1,8 @@
 package main
 
-import (
-	"lastHourFriday/internal"
-	"lastHourFriday/internal/DB"
-	tg "lastHourFriday/internal/telegramBotApi"
-)
+import "lastHourFriday/internal"
 
 func main() {
-	DB.GetAllKeysFromRedis()
-	DB.InitRedis()
-	tg.GetUpdateFromTelegram()
 	internal.Send()
-
+	//tg.GetUpdateFromTelegram()
 }
