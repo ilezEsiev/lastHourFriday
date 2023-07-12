@@ -10,7 +10,7 @@ type Config struct {
 	Token string `json:"token"`
 }
 
-func TokenTg() (Token string) {
+func ParseTokenTg() (Token string) {
 	// Чтение файла конфигурации
 	file, err := ioutil.ReadFile("config.json")
 	if err != nil {
@@ -18,11 +18,11 @@ func TokenTg() (Token string) {
 	}
 
 	// Распарсивание файла конфигурации
-	var Configjs Config
-	err = json.Unmarshal(file, &Configjs)
+	var configjs Config
+	err = json.Unmarshal(file, &configjs)
 	if err != nil {
 		log.Fatal("Ошибка парсинга файла конфигурации:", err)
 	}
-
-	return Configjs.Token
+	//fmt.Print(configjs.Token)
+	return configjs.Token
 }

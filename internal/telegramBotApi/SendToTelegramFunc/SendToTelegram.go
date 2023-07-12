@@ -1,26 +1,16 @@
 package SendToTelegramFunc
 
 import (
-	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/redis/go-redis/v9"
+	"lastHourFriday/internal/DB"
 	"log"
 )
 
 func SendTg(bot *tgbotapi.BotAPI) { //Функция отправки уведомления
 
-	// Подключение к базе Redis
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // Если не требуется пароль для доступа
-		DB:       0,  // Индекс базы данных
-	})
-
-	defer redisClient.Close()
-
 	// Получение всех идентификаторов чатов из Redis
-	channelIDs, err := redisClient.LRange(context.Background(), "telegram_channels", 0, -1).Result()
+	channelIDs, err := DB.GetAllKeysFromRedis()
 	if err != nil {
 		log.Println("Ошибка при получении идентификаторов чатов из Redis:", err)
 		return

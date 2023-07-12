@@ -6,19 +6,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func GetAllKeysFromRedis() []string {
+func GetAllKeysFromRedis() ([]string, error) {
 	// Подключение к Redis
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379", // Адрес Redis сервера
-		Password: "",               // Пароль, если установленzzz
-		DB:       0,                // Выбор базы данных
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
 	})
 	defer client.Close()
-	// Создание контекста
-	// Создание контекста
 	ctx := context.Background()
 
-	// Итерация через все значения в Redis
 	var cursor uint64
 	var values []string
 
@@ -29,13 +26,13 @@ func GetAllKeysFromRedis() []string {
 		// Использование команды "SCAN" для получения пакета значений
 		keys, cursor, err = client.Scan(ctx, cursor, "*", 10).Result()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		// Использование команды "MGET" для получения значений по ключам
 		results, err := client.MGet(ctx, keys...).Result()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		// Добавление значений в общий срез
@@ -55,5 +52,5 @@ func GetAllKeysFromRedis() []string {
 	for _, value := range values {
 		fmt.Println(value)
 	}
-	return values
+	return values, nil
 }
