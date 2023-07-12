@@ -6,7 +6,7 @@ import (
 )
 
 func Time(maghribHourTimeParsed time.Time) bool {
-	hourBefore := maghribHourTimeParsed.Add(-time.Hour)
+	hourBefore := maghribHourTimeParsed.Add(time.Hour)
 	timeLeft := time.Until(hourBefore)
 
 	if timeLeft > 0 && timeLeft < time.Hour {

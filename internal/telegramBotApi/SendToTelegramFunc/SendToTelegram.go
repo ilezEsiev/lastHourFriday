@@ -10,7 +10,7 @@ import (
 func SendTg(bot *tgbotapi.BotAPI) { //Функция отправки уведомления
 
 	// Получение всех идентификаторов чатов из Redis
-	channelIDs, err := DB.GetAllKeysFromRedis()
+	channelIDs, err := DB.GetAllChatIDsFromFile()
 	if err != nil {
 		log.Println("Ошибка при получении идентификаторов чатов из Redis:", err)
 		return
